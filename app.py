@@ -1,5 +1,5 @@
 import streamlit as st
-import database as db
+import database_firebase as db
 import pandas as pd
 from datetime import date, time
 import math
@@ -218,6 +218,12 @@ with st.sidebar:
     )
 
     st.markdown("---")
+
+    # Inicializar variables por defecto
+    filtro = "todos"
+    busqueda = None
+    busqueda_itinerario = None
+
 
     if seccion == "🌍 Viajes":
         if st.button("🏠 Inicio - Viajes", use_container_width=True):
