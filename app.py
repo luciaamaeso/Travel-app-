@@ -1,7 +1,8 @@
 import streamlit as st
 import database as db
 import pandas as pd
-from datetime import date
+from datetime import date, time
+import math
 
 # ──────────────────────────────────────────────
 #  CONFIGURACIÓN DE LA APP
@@ -97,6 +98,58 @@ st.markdown("""
     .activity-location { color: #efc8d7; font-size: 12px; margin-top: 2px; }
     .activity-notes { color: #d8a7ba; font-size: 11px; margin-top: 6px; font-style: italic; }
 
+    /* Tarjeta de itinerario */
+    .itinerario-card {
+        background: linear-gradient(135deg, #1f3a3a, #2b5f5f);
+        border: 1px solid #4a9595;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: border-color 0.2s;
+    }
+    .itinerario-card:hover { border-color: #5fc9a1; }
+
+    /* Timeline visual de itinerario */
+    .timeline-container {
+        margin-top: 30px;
+    }
+    .timeline-hour {
+        display: flex;
+        margin-bottom: 20px;
+    }
+    .timeline-hour-label {
+        font-weight: 700;
+        color: #f7a3bf;
+        min-width: 80px;
+        padding-right: 20px;
+        text-align: right;
+    }
+    .timeline-hour-content {
+        flex: 1;
+    }
+    .timeline-activity {
+        background: #2b1320;
+        border-left: 4px solid;
+        border-radius: 0 8px 8px 0;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+    }
+    .timeline-activity-title {
+        font-weight: 600;
+        color: #ffeaf2;
+    }
+    .timeline-activity-location {
+        color: #efc8d7;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+    .timeline-activity-notes {
+        color: #d8a7ba;
+        font-size: 11px;
+        margin-top: 6px;
+        font-style: italic;
+    }
+
     /* Sidebar */
     section[data-testid="stSidebar"] { background: #240f1a; }
 
@@ -117,12 +170,16 @@ if "pagina" not in st.session_state:
     st.session_state.pagina = "inicio"
 if "viaje_id" not in st.session_state:
     st.session_state.viaje_id = None
+if "itinerario_id" not in st.session_state:
+    st.session_state.itinerario_id = None
 if "editar" not in st.session_state:
     st.session_state.editar = False
 
 ESTADOS = ["idea", "planificado", "próximo", "completado"]
-EMOJIS  = ["🗺️","✈️","🏖️","🏔️","🌆","🏛️","🌿","🌊","🏜️","🌸","🎒","🚂","🛳️","🏕️","🌍"]
+EMOJIS_VIAJE = ["🗺️","✈️","🏖️","🏔️","🌆","🏛️","🌿","🌊","🏜️","🌸","🎒","🚂","🛳️","🏕️","🌍"]
+EMOJIS_ITINERARIO = ["📅","🌅","☀️","🌤️","⛅","🌇","🌙","⭐","✨","🎯","🎪","🎭","🎬","🎤","🎸"]
 CATEGORIAS_NOTA = ["general", "alojamiento", "transporte", "restaurantes", "actividades", "presupuesto", "documentos", "otros"]
+COLORES_ACTIVIDAD = ["#c44569", "#f7a3bf", "#ff6b9d", "#ffc0cb", "#ff85a2", "#ffb3c1", "#5fc9a1", "#4a9595"]
 
 BADGE = {
     "idea":        ("💡 Idea",        "badge-idea"),
@@ -131,12 +188,12 @@ BADGE = {
     "completado":  ("✅ Completado",  "badge-completado"),
 }
 
-def ir_a(pagina, viaje_id=None):
+def ir_a(pagina, viaje_id=None, itinerario_id=None):
     st.session_state.pagina = pagina
     st.session_state.viaje_id = viaje_id
+    st.session_state.itinerario_id = itinerario_id
     st.session_state.editar = False
     st.rerun()
-
 
 def fecha_desde_texto(valor):
     if not valor:
@@ -154,27 +211,46 @@ with st.sidebar:
     st.markdown("## ✈️ Mi Travel App")
     st.markdown("---")
 
-    if st.button("🏠  Inicio", use_container_width=True):
-        ir_a("inicio")
-    if st.button("➕  Nuevo viaje", use_container_width=True):
-        ir_a("nuevo")
-    if st.button("📊  Estadísticas", use_container_width=True):
-        ir_a("estadisticas")
+    seccion = st.radio(
+        "Selecciona sección",
+        ["🌍 Viajes", "📅 Itinerarios"],
+        label_visibility="collapsed"
+    )
 
     st.markdown("---")
-    st.markdown("**Filtrar por estado**")
-    filtro = st.selectbox("", ["todos"] + ESTADOS, label_visibility="collapsed")
-    busqueda = st.text_input("🔍 Buscar destino...", placeholder="ej. Tokio, París...")
+
+    if seccion == "🌍 Viajes":
+        if st.button("🏠 Inicio - Viajes", use_container_width=True):
+            ir_a("viajes_inicio")
+        if st.button("➕ Nuevo viaje", use_container_width=True):
+            ir_a("viajes_nuevo")
+        if st.button("📊 Estadísticas", use_container_width=True):
+            ir_a("estadisticas")
+        
+        st.markdown("---")
+        st.markdown("**Filtrar por estado**")
+        filtro = st.selectbox("", ["todos"] + ESTADOS, label_visibility="collapsed", key="filtro_viajes")
+        busqueda = st.text_input("🔍 Buscar destino...", placeholder="ej. Tokio, París...", key="busqueda_viajes")
+    
+    else:  # Itinerarios
+        if st.button("🏠 Inicio - Itinerarios", use_container_width=True):
+            ir_a("itinerarios_inicio")
+        if st.button("➕ Nuevo itinerario", use_container_width=True):
+            ir_a("itinerarios_nuevo")
+        
+        st.markdown("---")
+        busqueda_itinerario = st.text_input("🔍 Buscar itinerario...", placeholder="ej. Día en París...", key="busqueda_itinerario")
 
     st.markdown("---")
     st.caption("Tu diario de viajes personal 🌍")
 
 # ──────────────────────────────────────────────
-#  PÁGINA: INICIO
+#  SECCIÓN VIAJES
 # ──────────────────────────────────────────────
 
-if st.session_state.pagina == "inicio":
+if st.session_state.pagina == "viajes_inicio":
     st.markdown("# 🌍 Mis Viajes")
+
 
     viajes = db.obtener_viajes(filtro_estado=filtro, busqueda=busqueda if busqueda else None)
 
@@ -215,17 +291,13 @@ if st.session_state.pagina == "inicio":
             col1, col2, col3 = st.columns([1, 1, 6])
             with col1:
                 if st.button("📝 Ver", key=f"ver_{v['id']}"):
-                    ir_a("detalle", v["id"])
+                    ir_a("viajes_detalle", v["id"])
             with col2:
                 if st.button("🗑️", key=f"del_{v['id']}"):
                     db.eliminar_viaje(v["id"])
                     st.rerun()
 
-# ──────────────────────────────────────────────
-#  PÁGINA: NUEVO VIAJE
-# ──────────────────────────────────────────────
-
-elif st.session_state.pagina == "nuevo":
+elif st.session_state.pagina == "viajes_nuevo":
     st.markdown("# ➕ Nuevo Viaje")
     st.markdown("---")
 
@@ -237,7 +309,7 @@ elif st.session_state.pagina == "nuevo":
             pais       = st.text_input("País", placeholder="ej. Japón")
             estado     = st.selectbox("Estado", ESTADOS)
         with col2:
-            emoji      = st.selectbox("Icono", EMOJIS)
+            emoji      = st.selectbox("Icono", EMOJIS_VIAJE)
             sin_fecha_ini = st.checkbox("Sin fecha de inicio", value=True)
             fecha_ini = None
             if not sin_fecha_ini:
@@ -264,13 +336,9 @@ elif st.session_state.pagina == "nuevo":
                     presupuesto, descripcion, emoji
                 )
                 st.success("✅ ¡Viaje guardado!")
-                ir_a("inicio")
+                ir_a("viajes_inicio")
 
-# ──────────────────────────────────────────────
-#  PÁGINA: DETALLE
-# ──────────────────────────────────────────────
-
-elif st.session_state.pagina == "detalle":
+elif st.session_state.pagina == "viajes_detalle":
     viaje = db.obtener_viaje(st.session_state.viaje_id)
     if not viaje:
         st.error("Viaje no encontrado.")
@@ -326,7 +394,7 @@ elif st.session_state.pagina == "detalle":
                     pais_e    = st.text_input("País", value=viaje["pais"] or "")
                     estado_e  = st.selectbox("Estado", ESTADOS, index=ESTADOS.index(viaje["estado"]) if viaje["estado"] in ESTADOS else 0)
                 with col2:
-                    emoji_e   = st.selectbox("Icono", EMOJIS, index=EMOJIS.index(viaje["emoji"]) if viaje["emoji"] in EMOJIS else 0)
+                    emoji_e   = st.selectbox("Icono", EMOJIS_VIAJE, index=EMOJIS_VIAJE.index(viaje["emoji"]) if viaje["emoji"] in EMOJIS_VIAJE else 0)
                     sin_fecha_i_e = st.checkbox("Sin fecha de inicio", value=fecha_inicio_actual is None)
                     fecha_i_e = None
                     if not sin_fecha_i_e:
@@ -348,11 +416,11 @@ elif st.session_state.pagina == "detalle":
                         pres_e, desc_e, emoji_e
                     )
                     st.success("✅ Cambios guardados")
-                    ir_a("detalle", viaje["id"])
+                    ir_a("viajes_detalle", viaje["id"])
 
-            st.markdown("---")
+        st.markdown("---")
 
-        # ── Notas ──
+        # Notas
         st.markdown("### 📝 Notas e ideas")
 
         with st.expander("➕ Añadir nota", expanded=False):
@@ -370,7 +438,6 @@ elif st.session_state.pagina == "detalle":
         if not notas:
             st.caption("Todavía no hay notas. ¡Añade la primera!")
         else:
-            # Agrupar por categoría
             cats_con_notas = list(dict.fromkeys(n["categoria"] for n in notas))
             for cat in cats_con_notas:
                 notas_cat = [n for n in notas if n["categoria"] == cat]
@@ -392,7 +459,7 @@ elif st.session_state.pagina == "detalle":
 
         st.markdown("---")
 
-        # ── Lugares a visitar ──
+        # Lugares
         st.markdown("### 📍 Sitios concretos que quieres visitar")
         with st.expander("➕ Añadir sitio", expanded=False):
             with st.form("form_lugar"):
@@ -478,99 +545,12 @@ elif st.session_state.pagina == "detalle":
 
         st.markdown("---")
 
-        # ── Planes de un día ──
-        st.markdown("### 📅 Itinerarios del día")
-        
-        # Expandible para crear nuevo plan
-        with st.expander("➕ Crear itinerario de un día", expanded=False):
-            with st.form("form_plan_dia"):
-                fecha_plan = st.date_input("Fecha del itinerario", value=date.today())
-                if st.form_submit_button("Crear itinerario", use_container_width=True):
-                    plan_id = db.crear_plan_dia(viaje["id"], str(fecha_plan))
-                    st.success(f"✅ Itinerario creado para {fecha_plan}")
-                    st.rerun()
-
-        # Listar planes
-        planes = db.obtener_planes_dia(viaje["id"])
-        if not planes:
-            st.caption("Todavía no hay itinerarios. Crea uno para empezar a planificar el día.")
-        else:
-            for plan in planes:
-                st.markdown(f"**📆 {plan['fecha']}**")
-                
-                # Botones de acción
-                col_exp, col_del = st.columns([10, 1])
-                with col_exp:
-                    expander = st.expander("Ver y editar itinerario", expanded=False)
-                with col_del:
-                    if st.button("🗑️", key=f"plan_{plan['id']}", help="Eliminar itinerario"):
-                        db.eliminar_plan_dia(plan["id"])
-                        st.rerun()
-
-                with expander:
-                    # Formulario para añadir actividades
-                    st.markdown("**Añadir actividad**")
-                    with st.form(f"form_actividad_{plan['id']}"):
-                        col_h1, col_h2 = st.columns(2)
-                        with col_h1:
-                            hora_inicio = st.time_input("Hora inicio", value=None, key=f"hi_{plan['id']}")
-                        with col_h2:
-                            hora_fin = st.time_input("Hora fin", value=None, key=f"hf_{plan['id']}")
-                        
-                        actividad = st.text_input("Actividad *", placeholder="ej. Desayuno en La Boca")
-                        ubicacion = st.text_input("Ubicación", placeholder="ej. La Boca, Buenos Aires")
-                        notas = st.text_area("Notas", placeholder="recomendaciones, cosas a llevar...")
-                        
-                        if st.form_submit_button("Añadir", use_container_width=True, key=f"add_{plan['id']}"):
-                            if actividad.strip() and hora_inicio:
-                                db.agregar_actividad(
-                                    plan["id"],
-                                    str(hora_inicio),
-                                    actividad.strip(),
-                                    ubicacion.strip() or None,
-                                    notas.strip() or None,
-                                    str(hora_fin) if hora_fin else None
-                                )
-                                st.rerun()
-                            else:
-                                st.warning("La actividad y la hora de inicio son obligatorios.")
-
-                    # Mostrar actividades del día
-                    st.markdown("**Tu itinerario**")
-                    actividades = db.obtener_actividades(plan["id"])
-                    
-                    if not actividades:
-                        st.caption("No hay actividades todavía. ¡Añade la primera!")
-                    else:
-                        for act in actividades:
-                            col_act, col_del_act = st.columns([10, 1])
-                            
-                            with col_act:
-                                hora_fin_str = f" → {act['hora_fin']}" if act['hora_fin'] else ""
-                                st.markdown(f"""
-                                <div class="activity-timeline">
-                                    <div class="activity-time">⏰ {act['hora_inicio']}{hora_fin_str}</div>
-                                    <div class="activity-title">🎯 {act['actividad']}</div>
-                                    {f'<div class="activity-location">📍 {act["ubicacion"]}</div>' if act['ubicacion'] else ''}
-                                    {f'<div class="activity-notes">{act["notas"]}</div>' if act['notas'] else ''}
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            with col_del_act:
-                                if st.button("🗑️", key=f"act_{act['id']}", help="Eliminar actividad"):
-                                    db.eliminar_actividad(act["id"])
-                                    st.rerun()
-
-# ──────────────────────────────────────────────
-#  PÁGINA: ESTADÍSTICAS
-# ──────────────────────────────────────────────
-
 elif st.session_state.pagina == "estadisticas":
     st.markdown("# 📊 Estadísticas")
     st.markdown("---")
 
     if st.button("← Volver"):
-        ir_a("inicio")
+        ir_a("viajes_inicio")
 
     stats = db.estadisticas()
 
@@ -603,3 +583,218 @@ elif st.session_state.pagina == "estadisticas":
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
         st.info("No hay viajes todavía.")
+
+# ──────────────────────────────────────────────
+#  SECCIÓN ITINERARIOS
+# ──────────────────────────────────────────────
+
+elif st.session_state.pagina == "itinerarios_inicio":
+    st.markdown("# 📅 Mis Itinerarios")
+
+    itinerarios = db.obtener_itinerarios()
+    
+    # Filtrar por búsqueda si existe
+    if 'busqueda_itinerario' in locals() and busqueda_itinerario:
+        itinerarios = [i for i in itinerarios if busqueda_itinerario.lower() in i['nombre'].lower() or busqueda_itinerario.lower() in (i['ciudad'] or '').lower()]
+
+    if not itinerarios:
+        st.markdown("---")
+        st.info("No tienes itinerarios guardados todavía. ¡Crea tu primero en **Nuevo itinerario**!")
+    else:
+        st.markdown(f"**{len(itinerarios)} itinerario(s) encontrado(s)**")
+        st.markdown("---")
+        for it in itinerarios:
+            st.markdown(f"""
+            <div class="itinerario-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                    <div>
+                        <span style="font-size:28px">{it['emoji']}</span>
+                        <span style="font-size:20px; font-weight:700; color:#e2e8f0; margin-left:8px">{it['nombre']}</span>
+                    </div>
+                </div>
+                <div style="color:#8892a4; margin-top:6px">
+                    📅 {it['fecha']}
+                    {f"&nbsp;&nbsp;📍 {it['ciudad']}" if it['ciudad'] else ""}
+                </div>
+                {"<div style='color:#a0aec0; margin-top:8px; font-size:14px'>" + it['descripcion'] + "</div>" if it['descripcion'] else ""}
+            </div>
+            """, unsafe_allow_html=True)
+
+            col1, col2, col3 = st.columns([1, 1, 6])
+            with col1:
+                if st.button("👁️ Ver", key=f"ver_it_{it['id']}"):
+                    ir_a("itinerarios_detalle", itinerario_id=it["id"])
+            with col2:
+                if st.button("🗑️", key=f"del_it_{it['id']}"):
+                    db.eliminar_itinerario(it["id"])
+                    st.rerun()
+
+elif st.session_state.pagina == "itinerarios_nuevo":
+    st.markdown("# ➕ Nuevo Itinerario")
+    st.markdown("---")
+
+    with st.form("form_nuevo_itinerario"):
+        col1, col2 = st.columns(2)
+        with col1:
+            nombre = st.text_input("Nombre del itinerario *", placeholder="ej. Día en París")
+            fecha = st.date_input("Fecha *", value=date.today())
+        with col2:
+            emoji = st.selectbox("Emoji", EMOJIS_ITINERARIO)
+            ciudad = st.text_input("Ciudad", placeholder="ej. París")
+        
+        descripcion = st.text_area("Descripción / tema del día", placeholder="ej. Museos y monumentos...")
+
+        enviado = st.form_submit_button("💾 Guardar itinerario", use_container_width=True)
+        if enviado:
+            if not nombre:
+                st.error("El nombre del itinerario es obligatorio.")
+            else:
+                it_id = db.crear_itinerario(
+                    nombre, str(fecha), ciudad.strip() or None, 
+                    descripcion.strip() or None, emoji
+                )
+                st.success("✅ ¡Itinerario creado!")
+                ir_a("itinerarios_detalle", itinerario_id=it_id)
+
+elif st.session_state.pagina == "itinerarios_detalle":
+    itinerario = db.obtener_itinerario(st.session_state.itinerario_id)
+    if not itinerario:
+        st.error("Itinerario no encontrado.")
+        ir_a("itinerarios_inicio")
+    else:
+        col_back, col_edit = st.columns([8, 2])
+        with col_back:
+            if st.button("← Volver"):
+                ir_a("itinerarios_inicio")
+        with col_edit:
+            if st.button("✏️ Editar"):
+                st.session_state.editar = not st.session_state.editar
+
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:16px; margin:20px 0 8px">
+            <span style="font-size:48px">{itinerario['emoji']}</span>
+            <div>
+                <h1 style="margin:0">{itinerario['nombre']}</h1>
+                <span style="color:#8892a4">📅 {itinerario['fecha']}{f" • 📍 {itinerario['ciudad']}" if itinerario['ciudad'] else ""}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if itinerario["descripcion"]:
+            st.info(itinerario["descripcion"])
+
+        st.markdown("---")
+
+        if st.session_state.editar:
+            st.markdown("### ✏️ Editar itinerario")
+            fecha_actual = fecha_desde_texto(itinerario["fecha"])
+
+            with st.form("form_editar_it"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    nombre_e = st.text_input("Nombre", value=itinerario["nombre"])
+                    fecha_e = st.date_input("Fecha", value=fecha_actual or date.today())
+                with col2:
+                    emoji_e = st.selectbox("Emoji", EMOJIS_ITINERARIO, index=EMOJIS_ITINERARIO.index(itinerario["emoji"]) if itinerario["emoji"] in EMOJIS_ITINERARIO else 0)
+                    ciudad_e = st.text_input("Ciudad", value=itinerario["ciudad"] or "")
+                
+                desc_e = st.text_area("Descripción", value=itinerario["descripcion"] or "")
+
+                if st.form_submit_button("💾 Guardar cambios", use_container_width=True):
+                    db.actualizar_itinerario(
+                        itinerario["id"], nombre_e, str(fecha_e), 
+                        ciudad_e.strip() or None, desc_e.strip() or None, emoji_e
+                    )
+                    st.success("✅ Cambios guardados")
+                    ir_a("itinerarios_detalle", itinerario_id=itinerario["id"])
+
+        st.markdown("---")
+
+        # Formulario para añadir actividades
+        st.markdown("### ➕ Añadir actividad")
+        with st.form(f"form_actividad_{itinerario['id']}"):
+            col_h1, col_h2, col_color = st.columns(3)
+            with col_h1:
+                hora_inicio = st.time_input("Hora inicio *", value=time(9, 0), key=f"hi_{itinerario['id']}")
+            with col_h2:
+                hora_fin = st.time_input("Hora fin", value=None, key=f"hf_{itinerario['id']}")
+            with col_color:
+                color = st.selectbox("Color", COLORES_ACTIVIDAD, index=0, key=f"color_{itinerario['id']}")
+            
+            actividad = st.text_input("Actividad *", placeholder="ej. Desayuno en La Boca", key=f"act_{itinerario['id']}")
+            ubicacion = st.text_input("Ubicación", placeholder="ej. La Boca, Buenos Aires", key=f"ubi_{itinerario['id']}")
+            notas = st.text_area("Notas", placeholder="recomendaciones, cosas a llevar...", key=f"notas_{itinerario['id']}")
+            
+            if st.form_submit_button("✅ Añadir actividad", use_container_width=True):
+                if actividad.strip() and hora_inicio:
+                    db.agregar_actividad_itinerario(
+                        itinerario["id"],
+                        str(hora_inicio),
+                        actividad.strip(),
+                        ubicacion.strip() or None,
+                        notas.strip() or None,
+                        str(hora_fin) if hora_fin else None,
+                        color
+                    )
+                    st.rerun()
+                else:
+                    st.warning("La actividad y la hora de inicio son obligatorios.")
+
+        st.markdown("---")
+
+        # Vista visual de las actividades por franjas horarias
+        st.markdown("### 📊 Vista de tu día")
+        actividades = db.obtener_actividades_itinerario(itinerario["id"])
+        
+        if not actividades:
+            st.caption("No hay actividades todavía. ¡Añade la primera!")
+        else:
+            # Agrupar actividades por hora
+            actividades_por_hora = {}
+            for act in actividades:
+                hora = act['hora_inicio'][:5]  # HH:MM
+                if hora not in actividades_por_hora:
+                    actividades_por_hora[hora] = []
+                actividades_por_hora[hora].append(act)
+            
+            # Mostrar en orden
+            horas_ordenadas = sorted(actividades_por_hora.keys())
+            
+            st.markdown("""<div class="timeline-container">""", unsafe_allow_html=True)
+            
+            for hora in horas_ordenadas:
+                acts = actividades_por_hora[hora]
+                st.markdown(f"""
+                <div class="timeline-hour">
+                    <div class="timeline-hour-label">⏰ {hora}</div>
+                    <div class="timeline-hour-content">
+                """, unsafe_allow_html=True)
+                
+                for act in acts:
+                    hora_fin_str = f" → {act['hora_fin']}" if act['hora_fin'] else ""
+                    
+                    col_act, col_del = st.columns([10, 1])
+                    with col_act:
+                        st.markdown(f"""
+                        <div class="timeline-activity" style="border-left-color: {act['color']} !important;">
+                            <div class="timeline-activity-title">🎯 {act['actividad']}</div>
+                            {f'<div class="timeline-activity-location">📍 {act["ubicacion"]}</div>' if act['ubicacion'] else ''}
+                            {f'<div class="timeline-activity-notes">{act["notas"]}</div>' if act['notas'] else ''}
+                            <div style="color: #b88398; font-size: 11px; margin-top: 6px;">⏱️ {act["hora_inicio"]}{hora_fin_str}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with col_del:
+                        if st.button("🗑️", key=f"act_it_{act['id']}", help="Eliminar"):
+                            db.eliminar_actividad_itinerario(act["id"])
+                            st.rerun()
+                
+                st.markdown("""
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("""</div>""", unsafe_allow_html=True)
+
+# Página por defecto
+if st.session_state.pagina == "inicio":
+    ir_a("viajes_inicio")

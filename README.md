@@ -1,99 +1,113 @@
 # 🌍 Mi Travel App
 
-Una app para guardar tus viajes, ideas de destinos y no perder la cabeza viendo precios en booking a las 3 de la mañana. 
+Gestiona tus **viajes largos** y crea **itinerarios de un día** con visualización por franjas horarias.
 
-Apunta dónde quieres ir, qué quieres ver, cuánto dinero necesitas y gestionar lo ahorrado. Todo en un sitio sin tener 500 pestañas abiertas.
+## 📋 Dos secciones principales
 
-## Qué lleva
+### 🌍 **Viajes** - Para viajes largos
+- Crear viajes con fechas, destino y presupuesto
+- Estados: Idea → Planificado → Próximo → Completado
+- **Notas categorizadas**: alojamiento, transporte, restaurantes, actividades, presupuesto, documentos
+- **Lugares a visitar**: registra sitios específicos con detalles
+- **Bote de ahorro**: controla el dinero ahorrado vs presupuesto
+- **Estadísticas**: resumen de todos tus viajes y gastos
 
-- Python 
-- Streamlit (interfaz web)
-- SQLite (base de datos simple)
-- Pandas (para ver los números en tabla)
+### 📅 **Itinerarios** - Para días específicos
+- Crea itinerarios independientes con fecha y ciudad
+- **Vista visual por franjas horarias** (09:00, 10:00, etc)
+- Añade actividades con:
+  - Hora inicio/fin
+  - Ubicación
+  - Notas
+  - Color personalizado (8 colores disponibles)
+- Todo organizados por orden de tiempo
 
-## Qué puedes hacer
+## Stack
 
-- Crear viajes y dejar que se queden en "idea" una eternidad
-- Marcar dónde estás en el proceso (idea, planificado, próximo o si esta hecho)
-- Escribir notas sobre hoteles, vuelos, comidas, todo lo que se te ocurra
-- Meter un presupuesto y ir viendo cuánto dinero pones en el bote
-- Buscar viajes si tienes unos cuantos guardados ya
-- Ver estadísticas generales de gastos y viajes
+- **Python** 
+- **Streamlit** (interfaz web)
+- **SQLite** (base de datos)
+- **Pandas** (tablas)
 
-## Cómo arrancarlo
+## Arrancar
 
 ```bash
-# Clonar (si es que lo tienes en repo)
-git clone https://github.com/tu-usuario/mi-travel-app.git
-cd mi-travel-app
-
-# Crear un entorno virtual
 python -m venv venv
-source venv/bin/activate        # En Mac/Linux
-venv\Scripts\activate           # En Windows
-
-# Instalar las librerías
+source venv/bin/activate  # Mac/Linux
 pip install -r requirements.txt
-
-# Meter y que salga la interfaz
 streamlit run app.py
 ```
 
-Se te abre en `http://localhost:8501` y listo.
+Abre `http://localhost:8501`
 
-## Estructura
+## Estructura BD
 
-```
-├── app.py          # Todo lo visual
-├── database.py     # La gestión de la BD
-├── requirements.txt
-├── README.md       # Este archivo
-└── viajes.db       # Se crea sola con los datos que vayas insertando
-```
+### `viajes` - Viajes largos
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| nombre | Nombre del viaje |
+| destino | Ciudad destino |
+| pais | País |
+| estado | idea / planificado / próximo / completado |
+| fecha_inicio | Fecha salida |
+| fecha_fin | Fecha regreso |
+| presupuesto | Presupuesto en € |
+| descripcion | Notas generales |
+| emoji | Icono identificador |
 
-### Tabla `viajes`
-Donde guardar cada trip que se te ocurra.
+### `notas` - Anotaciones por viaje
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| viaje_id | Viaje asociado |
+| categoria | general / alojamiento / transporte / restaurantes / actividades / presupuesto / documentos / otros |
+| contenido | La nota |
 
-| Campo | Qué es |
-|-------|--------|
-| id | número único |
-| nombre | "Viaje a Japón" o lo que sea |
-| destino | ciudad destino |
-| pais | país |
-| estado | si es idea, está planeado, es el próximo o ya pasó |
-| fecha_inicio | cuándo sale (opcional) |
-| fecha_fin | cuándo vuelve (opcional) |
-| presupuesto | euros que te piensa gastar |
-| descripcion | notas sueltas sobre el viaje |
-| emoji | un icono para identificarlo rápido |
+### `lugares` - Sitios a visitar
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| viaje_id | Viaje asociado |
+| nombre | Nombre del lugar |
+| ubicacion | Ubicación |
+| descripcion | Detalles (horarios, entradas, etc) |
 
-### Tabla `notas`
-Para apuntar todo lo que se te ocurra: hoteles, restaurantes, cosas que ver, documentos...
+### `aportes_ahorro` - Bote de dinero
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| viaje_id | Viaje asociado |
+| monto | Dinero ahorrado (€) |
+| descripcion | Nota del aporte |
 
-| Campo | Qué es |
-|-------|--------|
-| id | número único |
-| viaje_id | a cuál viaje pertenece |
-| categoria | tipo de nota (alojamiento, transporte, etc) |
-| contenido | lo que escribas |
+### `itinerarios_dia` - Itinerarios de un día
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| nombre | Nombre del itinerario |
+| fecha | Fecha del día |
+| ciudad | Ciudad |
+| descripcion | Tema/plan del día |
+| emoji | Icono identificador |
 
-### Tabla `lugares`
-Sitios específicos que quieres visitar en cada viaje.
+### `actividades_itinerario` - Actividades por hora
+| Campo | Descripción |
+|-------|------------|
+| id | ID único |
+| itinerario_id | Itinerario asociado |
+| hora_inicio | Hora inicio (HH:MM) |
+| hora_fin | Hora fin (opcional) |
+| actividad | Descripción de la actividad |
+| ubicacion | Dónde |
+| notas | Detalles adicionales |
+| color | Color de identificación |
 
-| Campo | Qué es |
-|-------|--------|
-| id | número único |
-| viaje_id | el viaje al que pertenece |
-| nombre | nombre del sitio |
-| ubicacion | dónde está exactamente |
-| descripcion | notas (horarios, entradas, recomendaciones) |
+## Características
 
-### Tabla `aportes_ahorro`
-Tu bote de dinero para cada viaje.
+✅ Gestión completa de viajes largos  
+✅ Presupuestos y progreso de ahorro  
+✅ Itinerarios visuales por hora  
+✅ Búsqueda y filtros  
+✅ Estadísticas de gastos
 
-| Campo | Qué es |
-|-------|--------|
-| id | número único |
-| viaje_id | el viaje para el que ahorras |
-| monto | cuántos euros metes |
-| descripcion | nota del aporte |

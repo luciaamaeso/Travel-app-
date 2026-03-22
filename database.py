@@ -91,6 +91,34 @@ def inicializar_db():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS itinerarios_dia (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre          TEXT NOT NULL,
+            fecha           TEXT NOT NULL,
+            ciudad          TEXT,
+            descripcion     TEXT,
+            emoji           TEXT DEFAULT '📅',
+            creado_en       TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS actividades_itinerario (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            itinerario_id   INTEGER NOT NULL,
+            hora_inicio     TEXT NOT NULL,
+            hora_fin        TEXT,
+            actividad       TEXT NOT NULL,
+            ubicacion       TEXT,
+            notas           TEXT,
+            color           TEXT DEFAULT '#c44569',
+            orden           INTEGER DEFAULT 0,
+            creado_en       TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (itinerario_id) REFERENCES itinerarios_dia(id) ON DELETE CASCADE
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -375,3 +403,116 @@ def eliminar_actividad(actividad_id):
     conn.commit()
     conn.close()
 
+
+# ──────────────────────────────────────────────
+#  ITINERARIOS DE UN DÍA (INDEPENDIENTES)
+# ──────────────────────────────────────────────
+
+def crear_itinerario(nombre, fecha, ciudad=None, descripcion=None, emoji="📅"):
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO itinerarios_dia (nombre, fecha, ciudad, descripcion, emoji)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (nombre, fecha, ciudad, descripcion, emoji)
+    )
+    itinerario_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return itinerario_id
+
+
+def obtener_itinerarios(orden="fecha"):
+    conn = conectar()
+    query = "SELECT * FROM itinerarios_dia"
+    if orden == "fecha":
+        query += " ORDER BY fecha DESC"
+    else:
+        query += " ORDER BY creado_en DESC"
+    itinerarios = conn.execute(query).fetchall()
+    conn.close()
+    return [dict(i) for i in itinerarios]
+
+
+def obtener_itinerario(itinerario_id):
+    conn = conectar()
+    itinerario = conn.execute(
+        "SELECT * FROM itinerarios_dia WHERE id = ?",
+        (itinerario_id,)
+    ).fetchone()
+    conn.close()
+    return dict(itinerario) if itinerario else None
+
+
+def actualizar_itinerario(itinerario_id, nombre, fecha, ciudad, descripcion, emoji):
+    conn = conectar()
+    conn.execute(
+        """
+        UPDATE itinerarios_dia
+        SET nombre=?, fecha=?, ciudad=?, descripcion=?, emoji=?
+        WHERE id=?
+        """,
+        (nombre, fecha, ciudad, descripcion, emoji, itinerario_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def eliminar_itinerario(itinerario_id):
+    conn = conectar()
+    conn.execute("DELETE FROM itinerarios_dia WHERE id = ?", (itinerario_id,))
+    conn.commit()
+    conn.close()
+
+
+def agregar_actividad_itinerario(itinerario_id, hora_inicio, actividad, ubicacion=None, notas=None, hora_fin=None, color="#c44569"):
+    conn = conectar()
+    cursor = conn.cursor()
+    max_orden = conn.execute(
+        "SELECT MAX(orden) FROM actividades_itinerario WHERE itinerario_id = ?",
+        (itinerario_id,)
+    ).fetchone()[0]
+    orden = (max_orden or 0) + 1
+    
+    cursor.execute(
+        """
+        INSERT INTO actividades_itinerario (itinerario_id, hora_inicio, hora_fin, actividad, ubicacion, notas, color, orden)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (itinerario_id, hora_inicio, hora_fin, actividad, ubicacion, notas, color, orden)
+    )
+    conn.commit()
+    conn.close()
+
+
+def obtener_actividades_itinerario(itinerario_id):
+    conn = conectar()
+    actividades = conn.execute(
+        "SELECT * FROM actividades_itinerario WHERE itinerario_id = ? ORDER BY orden ASC",
+        (itinerario_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(a) for a in actividades]
+
+
+def actualizar_actividad_itinerario(actividad_id, hora_inicio, hora_fin, actividad, ubicacion, notas, color):
+    conn = conectar()
+    conn.execute(
+        """
+        UPDATE actividades_itinerario
+        SET hora_inicio=?, hora_fin=?, actividad=?, ubicacion=?, notas=?, color=?
+        WHERE id=?
+        """,
+        (hora_inicio, hora_fin, actividad, ubicacion, notas, color, actividad_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def eliminar_actividad_itinerario(actividad_id):
+    conn = conectar()
+    conn.execute("DELETE FROM actividades_itinerario WHERE id = ?", (actividad_id,))
+    conn.commit()
+    conn.close()
