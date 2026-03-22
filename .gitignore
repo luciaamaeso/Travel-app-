@@ -1,8 +1,55 @@
-serviceAccountKey.json
-travelappformanagement-firebase-adminsdk-fbsvc-6e46164f16.json
-*.json
+# Entorno virtual
 venv/
+env/
+ENV/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-viajes.db
+
+# Firebase (credenciales - NUNCA commitear)
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+firebase_config.json
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Archivos temporales
+.env.local
+.env.*.local
+.cache/
