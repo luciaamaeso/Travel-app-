@@ -1,79 +1,177 @@
-# 🌍 Mi Travel App 
+# 🌍 Travel App
 
-Gestiona tus **viajes largos** y crea **itinerarios de un día** con visualización por franjas horarias.
+Una aplicación web moderna para **planificar viajes completos** con itinerarios diarios detallados, control de gastos, seguimiento de ahorros y mucho más. Perfecto para viajeros que quieren organizar cada momento de su aventura.
 Hecha un domingo vibecodeando para solucionar mi problema de almacenaje de planes y viajes!
 
----
 
-## 📋 Dos secciones principales
-
-### 🌍 **Viajes** - Para viajes largos
-- Crear viajes con fechas, destino y presupuesto
-- Estados: Idea → Planificado → Próximo → Completado
-- **Notas categorizadas**: alojamiento, transporte, restaurantes, actividades, presupuesto, documentos
-- **Lugares a visitar**: registra sitios específicos con detalles
-- **Bote de ahorro**: controla el dinero ahorrado vs presupuesto
-- **Estadísticas**: resumen de todos tus viajes y gastos
-
-### 📅 **Itinerarios** - Para días específicos
-- Crea itinerarios independientes con fecha y ciudad
-- **Vista visual por franjas horarias** (09:00, 10:00, etc)
-- Añade actividades con:
-  - Hora inicio/fin
-  - Ubicación
-  - Notas
-  - Color personalizado (8 colores disponibles)
-- Todo organizados por orden de tiempo
+**🚀 [Ir al Inicio Rápido](#-inicio-rápido) • 📖 [Documentación](./docs/) • ❓ [FAQ](./docs/FAQ.md)**
 
 ---
 
-## 🛠️ Stack Tecnológico
+## ✨ Características Principales
 
-| Tecnología | Versión | Propósito |
-|-----------|---------|----------|
-| **Python** | 3.8+ | Lenguaje principal |
-| **Streamlit** | ≥1.32.0 | Interfaz web interactiva |
-| **Firebase** | ≥6.0.0 | Base de datos en la nube |
-| **Pandas** | ≥2.0.0 | Manipulación de datos |
+### 🧳 Gestión de Viajes
+- ✅ Crear viajes con destino, país, fechas y presupuesto
+- ✅ Editar y eliminar viajes (con eliminación en cascada de datos relacionados)
+- ✅ Seleccionar/deseleccionar viajes con sistema visual (⭕/🔘)
+- ✅ Ver estado del viaje (Planeando, En curso, Completado)
+- ✅ Asignar emoji personalizado a cada viaje
+
+### 📅 Itinerarios Automáticos
+- ✅ **Generación automática**: 1 itinerario por día en tu rango de fechas
+- ✅ Crear itinerarios adicionales con nombre y fecha personalizados
+- ✅ Organizar actividades por franjas horarias
+- ✅ Ver itinerarios en vista expandida por día
+
+### 🗺️ Actividades y Lugares
+- ✅ Agregar actividades a itinerarios con hora de inicio/fin
+- ✅ Registrar ubicación de cada actividad
+- ✅ Añadir notas y elegir color de categoría
+- ✅ Guardar lugares de interés con descripción
+- ✅ Eliminar actividades y lugares fácilmente
+
+### 💰 Control Financiero
+- ✅ Establecer presupuesto para cada viaje
+- ✅ Registrar aportes/ahorros con descripción opcional
+- ✅ Barra de progreso visual del porcentaje de ahorro
+- ✅ **🎯 Badge automático "✅ Listo para viajar"** cuando alcanzas el 100% de ahorro
+- ✅ Lista de todas las contribuciones al bote de ahorro
+
+### 📊 Estadísticas y Análisis
+- ✅ Estadísticas de viajes: cantidad, destinos más frecuentes, presupuesto total
+- ✅ Estadísticas de itinerarios: total creados, promedio por viaje
+- ✅ Estadísticas de actividades: cantidad registrada, categorías más usadas
+- ✅ Estadísticas de ahorros: total ahorrado, promedio por viaje
+
+### 🌐 Sincronización en la Nube
+- ✅ Todos los datos se guardan en **Firebase Realtime Database**
+- ✅ Acceso a tus viajes desde cualquier dispositivo
+- ✅ Sincronización en tiempo real
 
 ---
 
-## ⚡ Arranque Rápido
+## 🚀 Inicio Rápido
 
 ### Requisitos Previos
 - Python 3.8 o superior
-- pip o poetry
-- Credenciales de Firebase configuradas
+- Cuenta de Firebase (gratis en [firebase.google.com](https://console.firebase.google.com))
+- Git
 
-### Instalación
+### Pasos de Instalación
 
+**1️⃣ Clonar el repositorio**
 ```bash
-# Clonar repositorio
-git clone <url-repositorio>
+git clone <URL-del-repo>
 cd Travel-app-
+```
 
-# Crear entorno virtual
-python -m venv venv
+**2️⃣ Instalar dependencias**
+```bash
+bash setup.sh
+```
 
-# Activar entorno
-source venv/bin/activate  # Linux/Mac
-# o
-venv\Scripts\activate  # Windows
-
-# Instalar dependencias
+O manualmente:
+```bash
+python3 -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Configurar Firebase
+**3️⃣ Configurar Firebase**
+- Ve a [Firebase Console](https://console.firebase.google.com)
+- Selecciona o crea un proyecto
+- ⚙️ Configuración del proyecto → Cuentas de Servicio
+- Genera una clave privada (JSON)
+- Guarda el archivo como `serviceAccountKey.json` en la **raíz del proyecto**
 
-⚠️ **IMPORTANTE**: Consulta [SETUP_CREDENCIALES.md](./SETUP_CREDENCIALES.md) para configurar tus credenciales de Firebase de forma segura.
-
+**4️⃣ Ejecutar la aplicación**
 ```bash
-# Una vez configurado:
-streamlit run app.py
+streamlit run src/app.py
 ```
 
-Abre en tu navegador: `http://localhost:8501`
+La app se abrirá en `http://localhost:8501` ✨
+
+### ❓ Diagnóstico
+Si algo no funciona:
+```bash
+bash firebase-diagnose.sh
+```
+
+---
+
+## 📖 Cómo Usar la App
+
+### Vista General
+La app tiene dos paneles principales:
+
+#### 📌 Barra Lateral (Navegación)
+- **Viajes**: Gestiona todos tus viajes
+- **Estadísticas**: Visualiza datos y análisis
+
+#### 🎯 Sección de Viajes
+1. **Lista de Viajes**: Haz clic en ⭕ para seleccionar un viaje
+2. **Opciones**: Una vez seleccionado aparecen 3 botones:
+   - 👁️ **Ver**: Ve los detalles completos
+   - ✏️ **Editar**: Modifica nombre, fechas, presupuesto, etc.
+   - 🗑️ **Eliminar**: Borra el viaje (¡también borra itinerarios y actividades!)
+
+### Crear un Viaje
+1. Haz clic en **"+ Nuevo viaje"**
+2. Completa:
+   - **Nombre**: Ej. "Viaje a Japón"
+   - **Destino**: Ej. "Tokio"
+   - **País**: Ej. "Japón"
+   - **Presupuesto**: Tu presupuesto total en €
+   - **Descripción** (opcional): Notas adicionales
+   - **Emoji**: Elige uno que represente tu viaje
+   - **¿Sin fechas?** (checkbox): Marca si prefieres no definir fechas aún
+
+3. Si defines **fechas de inicio y fin**, la app **creará automáticamente 1 itinerario por cada día** 🎉
+
+### Ver Detalles del Viaje
+Haz clic en 👁️ **Ver** para acceder a:
+
+#### Información General
+- Nombre, destino, país, estado, presupuesto
+- Descripción y emoji asignado
+
+#### 📅 Itinerarios
+- Lista de itinerarios del viaje
+- Click en un itinerario para expandirlo y ver:
+  - **Actividades por hora** organizadas en orden cronológico
+  - Cada actividad muestra: hora, nombre, ubicación, notas y color
+
+#### ➕ Crear Itinerario Adicional
+- Agrega itinerarios extras (no automáticos) con nombre y fecha personalizados
+
+#### 🗺️ Lugares de Interés
+- Lista de lugares que quieres visitar
+- Click en ➕ para agregar nuevo lugar
+- Cada lugar tiene: nombre, dirección, descripción
+
+#### 🪙 Bote de Ahorro
+- **Progreso visual** de tu ahorro contra el presupuesto
+- **Desglose**: Ahorrado, Objetivo, Falta por ahorrar
+- **✅ Listo para viajar**: Aparece cuando alcanzas el 100% del ahorro
+- Botón ➕ para agregar dinero al bote
+- Lista de todos tus aportes con fechas
+
+### Gestionar Actividades
+En cada itinerario expandido:
+1. Haz clic en ➕ **Agregar actividad**
+2. Completa:
+   - **Hora de inicio y fin**: Franja horaria
+   - **Actividad**: Nombre de la actividad
+   - **Ubicación**: Dónde se realiza
+   - **Color**: Categoriza visualmente
+   - **Notas**: Detalles adicionales
+
+### Ver Estadísticas
+Desde la barra lateral:
+1. **Estadísticas - Viajes**: Datos sobre todos tus viajes
+2. **Estadísticas - Itinerarios**: Información de itinerarios
+3. **Estadísticas - Actividades**: Análisis de actividades
+4. **Estadísticas - Ahorros**: Tracking de dinero guardado
 
 ---
 
@@ -81,146 +179,105 @@ Abre en tu navegador: `http://localhost:8501`
 
 ```
 Travel-app-/
-├── app.py                      # Aplicación principal Streamlit
-├── database_firebase.py        # Operaciones con Firebase
-├── database.py                 # Base de datos local (SQLite)
-├── firebase_config.py          # Configuración de Firebase
-├── requirements.txt            # Dependencias Python
-├── README.md                   # Este archivo
-├── SETUP_CREDENCIALES.md       # Guía de configuración de Firebase
-├── config/                     # Archivos de configuración
-├── data/                       # Datos locales
-└── SETUP_FIREBASE.md           # Documentación adicional
+├── 📖 docs/                          # Documentación detallada
+│   ├── QUICKSTART.md                 # Guía rápida de 5 minutos
+│   ├── README.md                     # Descripción completa
+│   ├── FAQ.md                        # Preguntas frecuentes
+│   ├── SETUP_CREDENCIALES.md         # Cómo obtener credenciales Firebase
+│   ├── SETUP_FIREBASE.md             # Info adicional de Firebase
+│   ├── FIREBASE_TROUBLESHOOTING.md   # Solución de problemas
+│   └── ERROR_NONETYPE.md             # Referencia de errores
+│
+├── 💻 src/                           # Código fuente
+│   ├── app.py                        # Aplicación principal (Streamlit)
+│   ├── database_firebase.py          # Funciones de BD con Firebase
+│   ├── database.py                   # BD local (fallback)
+│   └── firebase_config.py            # Configuración de Firebase
+│
+├── ⚙️ config/                        # Archivos de configuración
+├── 💾 data/                          # Datos locales (si aplica)
+│
+├── 📋 requirements.txt               # Dependencias Python
+├── 🔧 setup.sh                       # Script de instalación automática
+├── 🔍 firebase-diagnose.sh           # Script de diagnóstico
+├── 📄 .env.example                   # Variables de entorno (ejemplo)
+├── 🚫 .gitignore                     # Archivos a ignorar en Git
+│
+└── 📦 venv/                          # Entorno virtual (no subir a Git)
 ```
 
 ---
 
-## 🗄️ Estructura de la Base de Datos
+## 🛠️ Tech Stack
 
-### Tabla: `viajes`
-Almacena los viajes largos planificados.
-
-| Campo | Tipo | Descripción |
-|-------|------|------------|
-| id | UUID | ID único del viaje |
-| nombre | String | Nombre del viaje |
-| destino | String | Ubicación del viaje |
-| fecha_inicio | Date | Fecha de inicio |
-| fecha_fin | Date | Fecha de finalización |
-| presupuesto | Float | Presupuesto total |
-| estado | String | Idea/Planificado/Próximo/Completado |
-| notas | JSON | Notas categorizadas |
-| gastos | Float | Gastos acumulados |
-
-### Tabla: `itinerarios`
-Almacena los itinerarios diarios.
-
-| Campo | Tipo | Descripción |
-|-------|------|------------|
-| id | UUID | ID único |
-| fecha | Date | Fecha del itinerario |
-| ciudad | String | Ubicación |
-| actividades | JSON | Actividades por hora |
+| Tecnología | Uso |
+|-----------|-----|
+| **Python 3.12** | Lenguaje principal |
+| **Streamlit** | Framework web interactivo |
+| **Firebase Realtime DB** | Base de datos en la nube |
+| **firebase-admin** | SDK de Firebase para Python |
+| **Pandas** | Manipulación y análisis de datos |
 
 ---
 
-## 🔧 Desarrollo
+## 📚 Documentación Adicional
 
-### Ejecutar en modo desarrollo
-```bash
-streamlit run app.py --logger.level=debug
-```
-
-### Ejecutar tests (si existen)
-```bash
-python -m pytest
-```
+| Documento | Contenido |
+|-----------|----------|
+| **[QUICKSTART.md](./docs/QUICKSTART.md)** | Guía rápida de 5 minutos |
+| **[FAQ.md](./docs/FAQ.md)** | Preguntas frecuentes |
+| **[SETUP_CREDENCIALES.md](./docs/SETUP_CREDENCIALES.md)** | Pasos para obtener credenciales Firebase |
+| **[SETUP_FIREBASE.md](./docs/SETUP_FIREBASE.md)** | Info técnica de Firebase |
+| **[FIREBASE_TROUBLESHOOTING.md](./docs/FIREBASE_TROUBLESHOOTING.md)** | Solución de problemas |
 
 ---
 
-## 🔐 Seguridad
+## ⚠️ Notas Importantes
 
-⚠️ **Confidencial**: 
-- **NUNCA** commitees archivos `*-firebase-adminsdk-*.json`
-- Las credenciales están protegidas en `.gitignore`
-- Para colaboradores: consulta [SETUP_CREDENCIALES.md](./SETUP_CREDENCIALES.md)
+### Datos en la Nube
+- Todos los datos se guardan en **Firebase** automáticamente
+- Asegúrate de mantener `serviceAccountKey.json` **seguro** (no lo subas a Git)
+- Las credenciales en `.gitignore` están protegidas
+
+### Eliminación de Viajes
+- Al eliminar un viaje, **se eliminan también**:
+  - ✅ Todos sus itinerarios
+  - ✅ Todas las actividades de esos itinerarios
+  - ✅ Todos los aportes/ahorros del viaje
+  - ✅ Todos los lugares de interés del viaje
+
+### Itinerarios Automáticos
+- Si defines fechas al crear/editar un viaje, se crean automáticamente itinerarios
+- **1 itinerario por día** en el rango de fechas seleccionado
+- Puedes agregar más itinerarios manualmente después
+
+---
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Para cambios importantes:
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
 ---
 
 ## 📝 Licencia
 
-Este proyecto es de uso personal.
+Este proyecto está bajo licencia MIT. Ver archivo `LICENSE` para más detalles.
 
 ---
 
-## 💬 Contacto
+## 💜 Soporte
 
-¿Sugerencias? Abre un issue en el repositorio.
+¿Preguntas o problemas?
+- 📖 Consulta la [Documentación](./docs/)
+- ❓ Revisa las [Preguntas Frecuentes](./docs/FAQ.md)
+- 🔍 Ejecuta el diagnóstico: `bash firebase-diagnose.sh`
 
 ---
 
-**Made with 💜 for travel planning**
-| destino | Ciudad destino |
-| pais | País |
-| estado | idea / planificado / próximo / completado |
-| fecha_inicio | Fecha salida |
-| fecha_fin | Fecha regreso |
-| presupuesto | Presupuesto en € |
-| descripcion | Notas generales |
-| emoji | Icono identificador |
-
-### `notas` - Anotaciones por viaje
-| Campo | Descripción |
-|-------|------------|
-| id | ID único |
-| viaje_id | Viaje asociado |
-| categoria | general / alojamiento / transporte / restaurantes / actividades / presupuesto / documentos / otros |
-| contenido | La nota |
-
-### `lugares` - Sitios a visitar
-| Campo | Descripción |
-|-------|------------|
-| id | ID único |
-| viaje_id | Viaje asociado |
-| nombre | Nombre del lugar |
-| ubicacion | Ubicación |
-| descripcion | Detalles (horarios, entradas, etc) |
-
-### `aportes_ahorro` - Bote de dinero
-| Campo | Descripción |
-|-------|------------|
-| id | ID único |
-| viaje_id | Viaje asociado |
-| monto | Dinero ahorrado (€) |
-| descripcion | Nota del aporte |
-
-### `itinerarios_dia` - Itinerarios de un día
-| Campo | Descripción |
-|-------|------------|
-| id | ID único |
-| nombre | Nombre del itinerario |
-| fecha | Fecha del día |
-| ciudad | Ciudad |
-| descripcion | Tema/plan del día |
-| emoji | Icono identificador |
-
-### `actividades_itinerario` - Actividades por hora
-| Campo | Descripción |
-|-------|------------|
-| id | ID único |
-| itinerario_id | Itinerario asociado |
-| hora_inicio | Hora inicio (HH:MM) |
-| hora_fin | Hora fin (opcional) |
-| actividad | Descripción de la actividad |
-| ubicacion | Dónde |
-| notas | Detalles adicionales |
-| color | Color de identificación |
-
-## Características
-
-✅ Gestión completa de viajes largos  
-✅ Presupuestos y progreso de ahorro  
-✅ Itinerarios visuales por hora  
-✅ Búsqueda y filtros  
-✅ Estadísticas de gastos
+**Hecho con 💜 para viajeros que aman planificar** ✈️🌍
 
