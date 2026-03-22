@@ -12,6 +12,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+serviceAccountKey.json
 
 # VSCode
 .vscode/
