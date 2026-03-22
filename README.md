@@ -1,6 +1,7 @@
-# 🌍 Mi Travel App
+# 🌍 Mi Travel App 
 
 Gestiona tus **viajes largos** y crea **itinerarios de un día** con visualización por franjas horarias.
+Hecha un domingo vibecodeando para solucionar mi problema de almacenaje de planes y viajes!
 
 ## 📋 Dos secciones principales
 
