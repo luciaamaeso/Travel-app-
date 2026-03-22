@@ -1,0 +1,8 @@
+serviceAccountKey.json
+travelappformanagement-firebase-adminsdk-fbsvc-6e46164f16.json
+*.json
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+viajes.db
